@@ -148,12 +148,15 @@ public class Base64Encoder
         destroy stringBuffer
         destroy byteBuffer
 
+    private function flushChunk()
+        stringBuffer.writeString(currentChunk)
+        stringCount++
+        currentChunk = ""
+
     private function append(string c)
         if currentChunk.length() >= maxChunkLength
-            stringBuffer.writeString(currentChunk)
-            currentChunk = c
-        else
-            currentChunk += c
+            flushChunk()
+        currentChunk += c
 
     private function encodeSingle(int byte, int count)
         var b = byte
@@ -201,8 +204,14 @@ public class Base64Encoder
         if padding == 1
             encode1()
 
+        if currentChunk.length() > 0
+            flushChunk()
+
     function pushByte(int b)
         byteBuffer.writeByte(b)
+
+    function pushShort(int n)
+        byteBuffer.writeShort(n)
 
     function pushInt(int n)
         byteBuffer.writeInt(n)
@@ -213,10 +222,8 @@ public class Base64Encoder
     function popChunk() returns string
         stringCount--
         let val = stringBuffer.readString()
+        print(val)
         return val
-
-    function flushChunk()
-        stringBuffer.writeString(currentChunk)
 
 function int.removeLastOctet() returns int
     return (this - (this div 0x1000000) * 0x1000000)
@@ -313,7 +320,6 @@ public class Base64Decoder
     //
     encoder.pushByte(0x21)
     encoder.encode()
-    encoder.flushChunk()
 
     assertTrue(encoder.popChunk() == "SGVsbG8sIHdvcmxkIQ==")
 
@@ -324,7 +330,6 @@ public class Base64Decoder
     encoder.pushInt(byte4(0x6f, 0x72, 0x6c, 0x64).toInt())
     encoder.pushInt(byte4(0x21, 0x20, 0x20, 0x20).toInt())    
     encoder.encode()
-    encoder.flushChunk()
 
     assertTrue(encoder.popChunk() == "SGVsbG8sIHdvcmxk")
     assertTrue(encoder.popChunk() == "ISAgIA==")
