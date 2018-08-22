@@ -4,6 +4,15 @@ import HashBuffer
 import Bitwise
 import StringUtils
 import Table
+import Execute
+
+// constants tuned to work on any optimization settings and with stacktraces
+// this is very pessimistic, and could be much higher on higher opts but whatever
+constant ENCODES_PER_ROUND = 500
+constant DECODES_PER_ROUND = 500
+
+int loopCounter = 0
+int loopActions = 0
 
 class ByteBuffer
     private var buffer = new Table()
@@ -188,24 +197,29 @@ public class Base64Encoder
         append("=")
 
     function encode()
-        byteBuffer.toReadMode()
+        execute() ->
+            byteBuffer.toReadMode()
 
-        let byteCount = byteBuffer.getByteCount()
+            let byteCount = byteBuffer.getByteCount()
 
-        let noPaddingWrites = (byteBuffer.getByteCount() div 3) - 1
-        let padding = byteCount mod 3
-        
-        for i = 0 to noPaddingWrites
-            encode3()
+            let noPaddingWrites = (byteBuffer.getByteCount() div 3) - 1
+            let padding = byteCount mod 3
 
-        if padding == 2
-            encode2()
+            loopActions = noPaddingWrites
+            loopCounter = 0
+            
+            executeWhile(ENCODES_PER_ROUND, () -> loopCounter <= loopActions) ->
+                encode3()
+                loopCounter++
 
-        if padding == 1
-            encode1()
+            if padding == 2
+                encode2()
 
-        if currentChunk.length() > 0
-            flushChunk()
+            if padding == 1
+                encode1()
+
+            if currentChunk.length() > 0
+                flushChunk()
 
     function pushByte(int b)
         byteBuffer.writeByte(b)
@@ -222,7 +236,6 @@ public class Base64Encoder
     function popChunk() returns string
         stringCount--
         let val = stringBuffer.readString()
-        print(val)
         return val
 
 function int.removeLastOctet() returns int
@@ -280,8 +293,13 @@ public class Base64Decoder
 
     function decode()
         let count = (charCount div 4) - 1
-        for i = 0 to count
+
+        loopCounter = 0
+        loopActions = count
+
+        executeWhile(DECODES_PER_ROUND, () -> loopCounter <= loopActions) ->
             next3Bytes()
+            loopCounter++
         byteBuffer.toReadMode()
 
     function pushChunk(string chunk)
