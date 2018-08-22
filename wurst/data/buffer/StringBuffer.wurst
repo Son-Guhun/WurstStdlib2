@@ -4,6 +4,12 @@ import ErrorHandling
 import LinkedList
 import BufferInterface
 
+interface StringBuffer extends Buffer
+	function pushChunk(string chunk)
+	function hasChunk() returns boolean
+	function popChunk() returns string
+	function moveTo(Buffer other)
+
 class ChunkElement
 	var content = ""
 
@@ -34,7 +40,7 @@ class ChunkElement
 	or elsewhere.
 	Use hasChunk() to check if there are any chunks left.
 **/
-public abstract class AbstractStringBuffer extends AbstractBuffer
+public abstract class AbstractStringBuffer extends AbstractBuffer implements StringBuffer
 	protected static constant MAX_BACKBUFFER_SIZE = 1024
 	protected static constant MAX_BUFFER_SIZE = 2048
 
@@ -46,7 +52,7 @@ public abstract class AbstractStringBuffer extends AbstractBuffer
 	// this is the maximum size of each chunk element
 	// we should keep this below MAX_BACKBUFFER_SIZE so that currentBuffer can reliably
 	// fit at least two buffers of that size, while staying under MAX_BUFFER_SIZE characters
-	private int maxBufferSize
+	protected int maxBufferSize
 
 	construct(int maxSize)
 		if maxSize > MAX_BACKBUFFER_SIZE
