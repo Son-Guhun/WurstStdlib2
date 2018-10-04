@@ -6,6 +6,7 @@ import DataInterfaces
 import Base64Data
 import Box
 import ErrorHandling
+import HashData
 
 /**
     A simple interface allowing to insert custom user code
@@ -31,14 +32,12 @@ public interface PersistableMiddleware
 
     SUCCESS - No error has occured.
     FAIL_READ - Error while trying to read data. Could be due to a programming error, or failing checksum, which means the file is missing or has been tampered with.
-    FAIL_TRANSFER - Error while trying to transfer data to/from Network.
     FAIL_DESERIALIZE - Error while trying to deserialize the class.
     FAIL_NO_PLAYER - Error due to the owner not being present in the game anymore.
 **/
 public enum LoadStatus
     SUCCESS
     FAIL_READ
-    FAIL_TRANSFER
     FAIL_DESERIALIZE
     FAIL_NO_PLAYER
 
@@ -81,7 +80,7 @@ public abstract class Persistable implements DataSerializable
             PacketReader.open(getPath())
             let checksum = PacketReader.read().toInt()
             var data = PacketReader.readBigString()
-            if checksum != data.checksum()
+            if checksum == 0 or checksum != data.checksum()
                 destroy data
                 error("Persistable: checksum failed to validate")
             if middleware != null
@@ -96,18 +95,15 @@ public abstract class Persistable implements DataSerializable
                 writer.writeInt(LoadStatus.SUCCESS castTo int)
 
             let deserializeSuccess = try() ->
-                reader.readSerializable(this)
+                let proxyReader = new HashDataProxyReader(network.getWriter(), reader)
+                proxyReader.readSerializable(this)
+                destroy proxyReader
 
             if deserializeSuccess
-                let transferSuccess = try() ->
-                    network.write() (writer) ->
-                        writer.writeSerializable(this)
-                
-                if transferSuccess
+                destroy statusBox
+                if reader != null
                     destroy reader
-                    return
-                else
-                    statusBox.inner = FAIL_TRANSFER
+                return
             else
                 statusBox.inner = FAIL_DESERIALIZE
         else
@@ -118,7 +114,8 @@ public abstract class Persistable implements DataSerializable
             writer.writeInt(statusBox.inner castTo int)
         
         destroy statusBox
-        destroy reader
+        if reader != null
+            destroy reader
 
     private function finishLoad(LoadStatus status, PersistableLoadCallback callback)
         onLoaded(status)
@@ -146,7 +143,7 @@ public abstract class Persistable implements DataSerializable
 
                 if loadStatus == LoadStatus.SUCCESS
                     if localPlayer != owner
-                    this.deserialize(reader)
+                        this.deserialize(reader)
                     finishLoad(LoadStatus.SUCCESS, callback)
                 else
                     finishLoad(loadStatus, callback)

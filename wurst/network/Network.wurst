@@ -264,6 +264,9 @@ public class Network
 	function getData() returns HashWriter
 		return dataWriter
 
+	function getWriter() returns HashWriter
+		return dataWriter
+
 	function write(NetworkWriteCallback callback)
 		// double-execute wrap to avoid desyncs
 		execute() ->

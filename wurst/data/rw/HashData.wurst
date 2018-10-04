@@ -224,3 +224,44 @@ public class HashReader implements DataReader
         realReadIndex = 0
         stringReadIndex = 0
         booleanReadIndex = 0
+
+public class HashDataProxyReader implements DataReader
+    private HashWriter proxyWriter
+    private DataReader source
+
+    construct(HashWriter proxyWriter, DataReader source)
+        this.proxyWriter = proxyWriter
+        this.source = source
+
+    override function readByte() returns int
+        let val = source.readByte()
+        proxyWriter.writeByte(val)
+        return val
+
+    override function readShort() returns int
+        let val = source.readShort()
+        proxyWriter.writeShort(val)
+        return val
+
+    override function readInt() returns int
+        let val = source.readInt()
+        proxyWriter.writeInt(val)
+        return val
+
+    override function readReal() returns real
+        let val = source.readReal()
+        proxyWriter.writeReal(val)
+        return val
+
+    override function readBoolean() returns boolean
+        let val = source.readBoolean()
+        proxyWriter.writeBoolean(val)
+        return val
+
+    override function readString() returns string
+        let val = source.readString()
+        proxyWriter.writeString(val)
+        return val
+
+    override function readSerializable(DataSerializable bs)
+        bs.deserialize(this)
