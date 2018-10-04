@@ -45,6 +45,8 @@ public function string.getWidth() returns int
 public function char(string s) returns char
 	if "\\" == s
 		return char('\')
+	if "/" == s
+		return char('/')
 	var a = s2c[s.getHash() div 0x1F0748 + 0x3EA]
 	if s != c2s[a]
 		return char(a + 32)

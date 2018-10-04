@@ -30,7 +30,6 @@ public class Base64DataWriter implements DataWriter
         var fractional = 0
         if number % 1 > 0.0001
             fractional = (1. / (number - value).abs()).toInt().clamp(0, 0xFFFF)
-        print("writing real : " + value.toString() + " | " + fractional.toString())
         encoder.pushInt(value)
         encoder.pushShort(fractional)
 
@@ -100,7 +99,6 @@ public class Base64DataReader implements DataReader
         var fractional = 0.
         if inverseFractional > 0
             fractional = 1. / inverseFractional.toReal()
-        print("reading real : " + number.toString() + " | " + fractional.toString())
         return number + fractional
 
     override function readBoolean() returns boolean
