@@ -232,36 +232,43 @@ public class HashDataProxyReader implements DataReader
     construct(HashWriter proxyWriter, DataReader source)
         this.proxyWriter = proxyWriter
         this.source = source
-
+    
+    @inline
     override function readByte() returns int
         let val = source.readByte()
         proxyWriter.writeByte(val)
         return val
 
+    @inline
     override function readShort() returns int
         let val = source.readShort()
         proxyWriter.writeShort(val)
         return val
 
+    @inline
     override function readInt() returns int
         let val = source.readInt()
         proxyWriter.writeInt(val)
         return val
 
+    @inline
     override function readReal() returns real
         let val = source.readReal()
         proxyWriter.writeReal(val)
         return val
 
+    @inline
     override function readBoolean() returns boolean
         let val = source.readBoolean()
         proxyWriter.writeBoolean(val)
         return val
 
+    @inline
     override function readString() returns string
         let val = source.readString()
         proxyWriter.writeString(val)
         return val
 
+    @inline
     override function readSerializable(DataSerializable bs)
         bs.deserialize(this)
