@@ -83,9 +83,10 @@ public abstract class Persistable implements DataSerializable
             if checksum == 0 or checksum != data.checksum()
                 destroy data
                 error("Persistable: checksum failed to validate")
-            if middleware != null
-                data = middleware.decode(data)
-            readerBox.inner = getReader(data)
+            else
+                if middleware != null
+                    data = middleware.decode(data)
+                readerBox.inner = getReader(data)
 
         let reader = readerBox.inner
         destroy readerBox
