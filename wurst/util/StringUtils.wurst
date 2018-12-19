@@ -43,7 +43,9 @@ public function string.getWidth() returns int
 	return width
 
 public function char(string s) returns char
-	if "\\" == s
+	if s == "/"
+		return char('/')
+	else if "\\" == s
 		return char('\')
 	if "/" == s
 		return char('/')
