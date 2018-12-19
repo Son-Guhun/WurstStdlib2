@@ -131,3 +131,5 @@ public class StringEncoder
 	function getStringCount() returns int
 		return outputReader.getStringCount()
 
+	function hasString() returns boolean
+		return outputReader.hasString()
